@@ -27,6 +27,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+package.json
+package-lock.json
+node_modules/
+dist/
+build/
 
 # PyInstaller
 *.manifest

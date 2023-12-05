@@ -7,7 +7,7 @@ import attribution as attr
 def prepare_portfolio_weights(weight_excel):
     portofolio_weights = pd.read_excel(weight_excel)
 
-    # Drop the last row of the dataframe (Total)
+    # Drop the last row of the (Total)
     portofolio_weights = portofolio_weights.iloc[:-1]
     portofolio_weights = portofolio_weights.melt(id_vars=['Instrument', 'Instr. Type', 'Sector 1', 'Ccy'], var_name='Date', value_name='Weight')
     
@@ -34,10 +34,11 @@ def lag_portfolio_weights(df):
 
 # Function that turns security level daily returns to GICS Sector level daily returns
 def transform_to_sector_level_returns(portfolio_df):
+    print(portfolio_df['Date'].info())
+    portfolio_df.drop(columns=['Instrument', 'Instr. Type', 'Ccy'], inplace=True)
     sector_returns = portfolio_df.groupby(['Date', 'GICS Sector']).sum()
-
     sector_returns = sector_returns.reset_index()
-    sector_returns.drop(columns=['Instrument', 'Instr. Type', 'Ccy'], inplace=True)
+    print(sector_returns)
     
     return sector_returns
 

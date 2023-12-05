@@ -1,0 +1,4 @@
+plotly
+openpyxl
+pyodide-http
+xlsxwriter

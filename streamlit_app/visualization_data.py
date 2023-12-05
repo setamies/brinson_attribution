@@ -26,20 +26,26 @@ def average_sector_weights(sector_level_data):
     
     return avg_sector_weights
 
+def get_last_compounded_effects(df, effect_column):
+    last_effects = {}
+    for sector in df['GICS Sector'].unique():
+        sector_df = df[df['GICS Sector'] == sector]
+        last_effects[sector] = (1 + sector_df[effect_column]).cumprod().iloc[-1] - 1
+    return last_effects
+
 def get_compounded_sector_effects(df):
-    # Group by GICS Sector only, since we want the compounded effect over all dates.
-    grouped = df.groupby('GICS Sector')
-    
-    compounded_allocation_effects = grouped['Allocation Effect'].apply(lambda x: (1 + x).cumprod() - 1).groupby('GICS Sector').last()
-    compounded_selection_effects = grouped['Selection Effect'].apply(lambda x: (1 + x).cumprod() - 1).groupby('GICS Sector').last()
-    compounded_interaction_effects = grouped['Interaction Effect'].apply(lambda x: (1 + x).cumprod() - 1).groupby('GICS Sector').last()
+    # Manually calculate the last compounded effect for each sector
+    allocation_last = get_last_compounded_effects(df, 'Allocation Effect')
+    selection_last = get_last_compounded_effects(df, 'Selection Effect')
+    interaction_last = get_last_compounded_effects(df, 'Interaction Effect')
 
     # Combine the results into a single DataFrame
     results_df = pd.DataFrame({
-        'Allocation Effect': compounded_allocation_effects,
-        'Selection Effect': compounded_selection_effects,
-        'Interaction Effect': compounded_interaction_effects
-    }).reset_index()
+        'GICS Sector': allocation_last.keys(),
+        'Allocation Effect': allocation_last.values(),
+        'Selection Effect': selection_last.values(),
+        'Interaction Effect': interaction_last.values()
+    })
 
     return results_df
 
