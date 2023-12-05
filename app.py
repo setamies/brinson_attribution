@@ -6,10 +6,10 @@ import visualizations as viz
 import data as data
 import visualization_data as viz_data
 import plotly.graph_objects as go
+import utils
 
-
-# App configuration
-st.set_page_config(layout='wide', page_title='Portfolio Attribution App', initial_sidebar_state='collapsed')
+#! App configuration
+st.set_page_config(layout='wide', page_title='Portfolio Attribution App', initial_sidebar_state='expanded')
 
 # Title and description
 st.title('Portfolio Attribution Analysis')
@@ -33,7 +33,8 @@ if all(file is not None for file in all_files):
     combined_df, daily_level_data = data.get_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx)
     
     # Main content
-    st.header("Analysis Results")
+    st.title("Analysis Results")
+    
     col1, col2 = st.columns(2)
 
     with col1:
@@ -41,16 +42,34 @@ if all(file is not None for file in all_files):
         st.plotly_chart(viz.plot_daily_compounded_returns(viz_data.daily_compounded_returns(daily_level_data)), use_container_width=True)
 
     with col2:
-        st.subheader("Attribution Effects")
+        st.subheader("Sector Effects - Allocation, Selection, and Interaction")
         st.plotly_chart(viz.plot_allocation_effects_per_sector(viz_data.get_compounded_sector_effects(combined_df)), use_container_width=True)
 
-    st.header("Sector Weights Comparison")
+    st.subheader("Portfolio vs Benchmark Average Sector Weights")
     st.plotly_chart(viz.plot_sector_weights_comparison(viz_data.average_sector_weights(combined_df)), use_container_width=True)
 
-    st.header("Historical Attribution")
+    st.subheader("Attribution Effects and Excess Returns Over Time")
     st.plotly_chart(viz.plot_attribution_effects(viz_data.compounded_allocation_effects(daily_level_data)), use_container_width=True)
+    
+    with st.sidebar:
+        st.subheader('Download Attribution Data')
+
+        st.download_button(
+            label='Download Sector-Level Data',
+            data=utils.to_excel_download(combined_df, 'Sector Level Data'),
+            file_name='sector_data.xlsx',
+            mime='application/vnd.ms-excel'
+        )
+
+        st.download_button(
+            label='Download Daily-Level Data',
+            data=utils.to_excel_download(daily_level_data, 'Daily Data'),
+            file_name='daily_data.xlsx',
+            mime='application/vnd.ms-excel'
+        )
+
 else:
-    st.info("Please upload all required files to proceed with the analysis.")
+    st.info("Please upload subheader required files to proceed with the analysis.")
 
 # Footer or additional information
 st.markdown("---")

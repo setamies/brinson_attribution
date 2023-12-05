@@ -114,6 +114,12 @@ def combine_portfolio_and_benchmark_data(portfolio_df, benchmark_df):
     return combined_df
 
 def redistribute_portfolio_returns(df_input):
+    """
+    This function redistributes the portfolio returns drom days with zero benchmark returns.
+    It redistributes the returns from days with zero benchmark returns to the next active date.
+    The purpose of this function is to make multi-asset class portfolios comparable with equity benchmarks.
+    If there are is no activity in the portfolio on a day with zero benchmark return, nothing happens.
+    """
     df = df_input.copy()
 
     zero_return_dates = utils.get_zero_return_dates(df)
