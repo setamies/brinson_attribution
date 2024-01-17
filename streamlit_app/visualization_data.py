@@ -52,12 +52,12 @@ def get_compounded_sector_effects(df):
 def compounded_allocation_effects(df):
     # Make sure the date index is sorted
     df = df.sort_index()
-    
+
     allocation_effects = utils.calculate_compounded_change(df['Allocation Effect'])
     selection_effects = utils.calculate_compounded_change(df['Selection Effect'])
     interaction_effects = utils.calculate_compounded_change(df['Interaction Effect'])
     excess_returns = utils.calculate_compounded_change(df['Excess Return'])
-    
+
     # Combine the results into a single DataFrame, same index as in df
     results_df = pd.DataFrame({
         'Allocation Effect': allocation_effects,
@@ -65,8 +65,8 @@ def compounded_allocation_effects(df):
         'Interaction Effect': interaction_effects,
         'Excess Returns': excess_returns
     }, index=df.index)
-    
+
     # Make all start from 0
     results_df = results_df - results_df.iloc[0]
-    
+
     return results_df

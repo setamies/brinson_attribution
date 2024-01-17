@@ -37,3 +37,36 @@ The app includes a suite of data visualizations that represent:
 - Sector weights comparison between the portfolio and the benchmark.
 - Attribution effects over time in a multi-line chart format.
 - Attribution effects illustrated by sector from the entire time span of data.
+
+## Installation and updates
+
+The project should have the following directory structure:
+streamlit_stlite/
+├── streamlit_app/
+│   ├── streamlit_app.py
+│   ├── requirements.txt (optional, for multi-page apps)
+│   └── pages/ (optional, for multi-page apps)
+└── package.json
+
+To install or update the app, make sure you don't have build, dist, or node_modules folders. If you do, remove them first. After that, run these commands in the parent directory (streamlit_stlite):
+
+* Install npm dependencies 
+
+'
+npm install
+'
+
+* Build the application
+
+'
+npm run dump streamlit_app pyodide-http plotly openpyxl xlsxwriter
+
+# Or, if using requirements.txt
+npm run dump streamlit_app -- -r requirements.txt
+'
+
+* Create the executable
+
+'
+npm run dist
+'

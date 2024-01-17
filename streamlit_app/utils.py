@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import io
 
-
 def return_datetime_column(df_series):
     # Turn the df_series into a datetime 
     # The format '%d.%m.%Y' matches the date format 'day.month.year'
@@ -17,7 +16,7 @@ def get_zero_return_dates(df):
     return zero_return_dates
 
 def calculate_compounded_change(series_from_df):
-    return np.exp(np.log(series_from_df + 1).cumsum()) - 1
+    return np.exp(np.log(1 + series_from_df).cumsum()) - 1
 
 def to_excel_download(dataframe, sheet_name='Sheet1'):
     """

@@ -4,12 +4,12 @@ import pandas as pd
 
 # Defining a consistent color palette
 color_palette = {
-    'Portfolio': 'rgba(94,162,186,255)',  # Blue color 
-    'Benchmark': 'rgba(110,128,144,255)',    # Orange color 
-    'Allocation': 'rgba(114,194,136,255)',   # Green color
-    'Selection': 'rgba(61,121,144,255)',   # Purple color
-    'Interaction': 'rgba(38,88,76,255)', # Yellow color
-    'Excess Returns': 'rgba(184,214,225,255)' # Brown color
+    'Portfolio': 'rgba(94,162,186,255)',  
+    'Benchmark': 'rgba(110,128,144,255)',    
+    'Allocation': 'rgba(114,194,136,255)',  
+    'Selection': 'rgba(61,121,144,255)',  
+    'Interaction': 'rgba(38,88,76,255)', 
+    'Excess Returns': 'rgba(184,214,225,255)' 
 }
 
 def plot_daily_compounded_returns(df):
@@ -47,7 +47,7 @@ def plot_daily_compounded_returns(df):
             x=1
         ), 
         yaxis=dict(
-            tickformat = ',.0%'
+            tickformat = ',.1%'
         )
     )
 
@@ -77,7 +77,7 @@ def plot_sector_weights_comparison(df):
 
     fig.update_layout(
         yaxis=dict(
-            tickformat = ',.0%'
+            tickformat = ',.1%'
         ),
         xaxis_tickangle=-45,
         xaxis_title='GICS Sector',
@@ -126,7 +126,7 @@ def plot_allocation_effects_per_sector(df):
 
     fig.update_layout(
         xaxis=dict(
-            tickformat = ',.0%'
+            tickformat = ',.1%'
         ),
         legend=dict(
             orientation="h",
@@ -159,7 +159,7 @@ def plot_attribution_effects(df):
     fig = go.Figure(traces)
     fig.update_layout(
         xaxis=dict(title='Date'),
-        yaxis=dict(title='Effect Value', tickformat = ',.0%'),
+        yaxis=dict(title='Effect Value', tickformat = ',.1%'),
         legend_title='Performance Metrics',
         hovermode='x unified'
     )
