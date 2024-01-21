@@ -28,13 +28,13 @@ def main():
         portfolio_return_xlsx = st.file_uploader("Portfolio Returns", type=['xlsx'], key="portfolio_return")
         benchmark_weight_xlsx = st.file_uploader("Benchmark Weights", type=['xlsx'], key="benchmark_weight")
         benchmark_return_xlsx = st.file_uploader("Benchmark Returns", type=['xlsx'], key="benchmark_return")
+        multi_industry_xlsx = st.file_uploader("Multi-industry Weights", type=['xlsx'], key="multi_industry_weights")
 
     # Check if all file uploaders have a file uploaded
-    all_files = [portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx]
+    all_files = [portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx, multi_industry_xlsx]
     if all(file is not None for file in all_files):
         # Fetch sector and daily level data
-
-        combined_df, daily_level_data = data.get_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx)
+        combined_df, daily_level_data = data.get_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx, multi_industry_xlsx)
 
         # Main content
         st.title("Analysis Results")
