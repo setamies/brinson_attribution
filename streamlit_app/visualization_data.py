@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import utils
+import attribution
 
 # Function that returns daily compounded returns 
 def daily_compounded_returns(daily_data):
@@ -50,13 +51,28 @@ def get_compounded_sector_effects(df):
     return results_df
 
 def compounded_allocation_effects(df):
+    # Create a dataframe from two compounded returns
+    comp_change_df = pd.DataFrame({
+        'Portfolio Weighted Returns': utils.calculate_compounded_change(df['Portfolio Weighted Returns']),
+        'Benchmark Weighted Returns': utils.calculate_compounded_change(df['Benchmark Weighted Returns'])
+    })
+    
+    # Get the carino scaling coefficient for each time period
+    scaling_coefficient = attribution.carino_scaling_coefficient(comp_change_df).fillna(1)
+
     # Make sure the date index is sorted
     df = df.sort_index()
 
-    allocation_effects = utils.calculate_compounded_change(df['Allocation Effect'])
-    selection_effects = utils.calculate_compounded_change(df['Selection Effect'])
-    interaction_effects = utils.calculate_compounded_change(df['Interaction Effect'])
-    excess_returns = utils.calculate_compounded_change(df['Excess Return'])
+    df['Allocation Effect'] = df['Allocation Effect'] * scaling_coefficient
+    df['Selection Effect'] = df['Selection Effect'] * scaling_coefficient
+    df['Interaction Effect'] = df['Interaction Effect'] * scaling_coefficient
+
+    # Each value is now cumulative, so we need to calculate the cumulative values
+    allocation_effects = df['Allocation Effect'].cumsum()
+    selection_effects = df['Selection Effect'].cumsum()
+    interaction_effects = df['Interaction Effect'].cumsum()
+
+    excess_returns = comp_change_df['Portfolio Weighted Returns'] - comp_change_df['Benchmark Weighted Returns']
 
     # Combine the results into a single DataFrame, same index as in df
     results_df = pd.DataFrame({

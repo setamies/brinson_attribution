@@ -12,3 +12,9 @@ def calculate_interaction_effect(df):
 
 def sum_of_effects(allocation, selection, interaction):
     return allocation + selection + interaction
+
+def carino_scaling_coefficient(df):
+
+    dividend = (np.log(1 + df['Portfolio Weighted Returns']) - np.log(1 + df['Benchmark Weighted Returns'])) / (df['Portfolio Weighted Returns'] - df['Benchmark Weighted Returns'])
+    divisor = (np.log(1 + df['Portfolio Weighted Returns'].iloc[-1]) - np.log(1 + df['Benchmark Weighted Returns'].iloc[-1])) / (df['Portfolio Weighted Returns'].iloc[-1] - df['Benchmark Weighted Returns'].iloc[-1])
+    return dividend / divisor

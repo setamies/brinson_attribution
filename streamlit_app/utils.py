@@ -20,3 +20,12 @@ def to_excel_download(dataframe, sheet_name='Sheet1'):
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         dataframe.to_excel(writer, sheet_name=sheet_name, index=True)
     return output.getvalue()
+
+def filter_data_by_dates(df, dates):
+    # Ensure that 'dates' is a list of pandas Timestamps
+    start_date, end_date = pd.to_datetime(dates[0]), pd.to_datetime(dates[1])
+    
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    df_filtered = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+    return df_filtered

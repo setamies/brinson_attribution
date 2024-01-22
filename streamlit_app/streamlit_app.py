@@ -6,6 +6,7 @@ import data as data
 import visualization_data as viz_data
 import utils
 import time
+import datetime
 
 def main():
     #! App configuration
@@ -23,14 +24,25 @@ def main():
     with st.sidebar:
         st.header('Upload Data Files')
         performance_data = st.file_uploader("Performance Data", type=['xlsx'], key="performance_data")
+        
+        start = datetime.date(2022, 12, 31)
+        end = datetime.date(2023, 12, 31)
+        max_date = datetime.date((datetime.datetime.now().year + 1), 1, 1)
+        dates = st.date_input(
+            "Select the date range",
+            (start, end),
+            # Max value is today
+            max_value=max_date
+        )
 
     # Check if the file has been uploaded and display the results
-    if performance_data is not None:
+    if performance_data is not None and len(dates) == 2:
+
         with st.spinner("Loading..."):
             time.sleep(3)
 
         # Fetch sector and daily level data
-        combined_df, daily_level_data = data.get_data(performance_data)
+        combined_df, daily_level_data = data.get_data(performance_data, dates)
 
         st.title("Analysis Results")
 
@@ -68,7 +80,7 @@ def main():
                 mime='application/vnd.ms-excel',
                 use_container_width=True
             )
-            
+
             st.download_button(
                 label='Download Attribution Effects',
                 data=utils.to_excel_download(viz_data.compounded_allocation_effects(daily_level_data), 'Attribution Data'),
@@ -79,7 +91,7 @@ def main():
             
 
     else:
-        st.info("Please upload subheader required files to proceed with the analysis.")
+        st.info("Please upload required files and select the dates to proceed with the analysis.")
 
     # Footer or additional information
     st.markdown("---")
