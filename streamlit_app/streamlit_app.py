@@ -5,20 +5,17 @@ import visualizations as viz
 import data as data
 import visualization_data as viz_data
 import utils
-
-import pyodide_http # https://github.com/whitphx/stlite/blob/main/packages/desktop/README.md
-pyodide_http.patch_all()
-
+import time
 
 def main():
     #! App configuration
-    st.set_page_config(layout='wide', page_title='Portfolio Attribution App', initial_sidebar_state='expanded')
+    st.set_page_config(layout='wide', page_title='Performance Attribution', initial_sidebar_state='expanded')
 
     # Show the description of the app before any the file has been uploaded
     if 'performance_data' not in st.session_state or st.session_state.performance_data is None:
-        st.title('Portfolio Attribution Analysis')
+        st.title('Performance Attribution Analysis')
         st.markdown("""
-            This app performs portfolio attribution analysis, comparing portfolio performance against a benchmark.
+            This app performs performance attribution analysis, comparing portfolio performance against a benchmark.
             Upload the relevant Excel files to the fields in the side bar to get started.
         """)
 
@@ -27,12 +24,14 @@ def main():
         st.header('Upload Data Files')
         performance_data = st.file_uploader("Performance Data", type=['xlsx'], key="performance_data")
 
-    # Check if the file has been uploaded
+    # Check if the file has been uploaded and display the results
     if performance_data is not None:
+        with st.spinner("Loading..."):
+            time.sleep(3)
+
         # Fetch sector and daily level data
         combined_df, daily_level_data = data.get_data(performance_data)
 
-        # Main content
         st.title("Analysis Results")
 
         col1, col2 = st.columns(2)
@@ -84,7 +83,7 @@ def main():
 
     # Footer or additional information
     st.markdown("---")
-    st.markdown("© Performance Attribution Analysis - Rettig")
+    st.markdown("© Performance Attribution - Rettig")
 
 if __name__ == "__main__":
     main()
