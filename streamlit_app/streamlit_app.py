@@ -14,27 +14,23 @@ def main():
     #! App configuration
     st.set_page_config(layout='wide', page_title='Portfolio Attribution App', initial_sidebar_state='expanded')
 
-    # Title and description
-    st.title('Portfolio Attribution Analysis')
-    st.markdown("""
-        This app performs portfolio attribution analysis, comparing portfolio performance against a benchmark.
-        Upload the relevant Excel files to the fields in the side bar to get started.
-    """)
+    # Show the description of the app before any the file has been uploaded
+    if 'performance_data' not in st.session_state or st.session_state.performance_data is None:
+        st.title('Portfolio Attribution Analysis')
+        st.markdown("""
+            This app performs portfolio attribution analysis, comparing portfolio performance against a benchmark.
+            Upload the relevant Excel files to the fields in the side bar to get started.
+        """)
 
     # Sidebar for file upload
     with st.sidebar:
         st.header('Upload Data Files')
-        portfolio_weight_xlsx = st.file_uploader("Portfolio Weights", type=['xlsx'], key="portfolio_weight")
-        portfolio_return_xlsx = st.file_uploader("Portfolio Returns", type=['xlsx'], key="portfolio_return")
-        benchmark_weight_xlsx = st.file_uploader("Benchmark Weights", type=['xlsx'], key="benchmark_weight")
-        benchmark_return_xlsx = st.file_uploader("Benchmark Returns", type=['xlsx'], key="benchmark_return")
-        multi_industry_xlsx = st.file_uploader("Multi-industry Weights", type=['xlsx'], key="multi_industry_weights")
+        performance_data = st.file_uploader("Performance Data", type=['xlsx'], key="performance_data")
 
-    # Check if all file uploaders have a file uploaded
-    all_files = [portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx, multi_industry_xlsx]
-    if all(file is not None for file in all_files):
+    # Check if the file has been uploaded
+    if performance_data is not None:
         # Fetch sector and daily level data
-        combined_df, daily_level_data = data.get_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx, multi_industry_xlsx)
+        combined_df, daily_level_data = data.get_data(performance_data)
 
         # Main content
         st.title("Analysis Results")
@@ -60,11 +56,10 @@ def main():
 
             st.download_button(
                 label='Download Sector-Level Data',
-                data=utils.to_excel_download(combined_df, 'Sector Level Data'),
+                data=utils.to_excel_download(combined_df.set_index('Date'), 'Sector Level Data'),
                 file_name='sector_data.xlsx',
                 mime='application/vnd.ms-excel',
                 use_container_width=True
-
             )
 
             st.download_button(
@@ -74,13 +69,22 @@ def main():
                 mime='application/vnd.ms-excel',
                 use_container_width=True
             )
+            
+            st.download_button(
+                label='Download Attribution Effects',
+                data=utils.to_excel_download(viz_data.compounded_allocation_effects(daily_level_data), 'Attribution Data'),
+                file_name='attribution_data.xlsx',
+                mime='application/vnd.ms-excel',
+                use_container_width=True
+            )
+            
 
     else:
         st.info("Please upload subheader required files to proceed with the analysis.")
 
     # Footer or additional information
     st.markdown("---")
-    st.markdown("© 2023 Portfolio Attribution Analysis App")
+    st.markdown("© Performance Attribution Analysis - Rettig")
 
 if __name__ == "__main__":
     main()

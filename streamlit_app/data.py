@@ -4,8 +4,8 @@ import attribution as attr
 
 #! ---------------------------- Portfolio data functions ----------------------------
 
-def prepare_portfolio_weights(weight_excel):
-    portfolio_weights = pd.read_excel(weight_excel)
+def prepare_portfolio_weights(performance_data):
+    portfolio_weights = pd.read_excel(performance_data, sheet_name="Portfolio Weights")
 
     # Transpose the data frame and reset the index
     df_transposed = portfolio_weights.set_index('Instrument').T
@@ -21,8 +21,8 @@ def prepare_portfolio_weights(weight_excel):
 
     return portofolio_weights
 
-def prepare_portfolio_returns(return_excel): 
-    portfolio_returns = pd.read_excel(return_excel)
+def prepare_portfolio_returns(performance_data): 
+    portfolio_returns = pd.read_excel(performance_data, sheet_name="Portfolio Returns")
 
     df_transposed = portfolio_returns.set_index('Instrument').T
     df_transposed.reset_index(inplace=True)
@@ -38,27 +38,6 @@ def combine_portfolio_data(portfolio_weights, portfolio_returns):
                     .rename(columns={'Sector 1': 'GICS Sector'}))
 
     return portfolio_df
-
-def drop_dates_with_no_stock_returns(df):
-    # Group by 'Date' and count the number of instruments with 0 returns
-
-    zero_counts = df.groupby('Date').apply(
-        lambda x: (x['Return'] == 0).sum()
-    )
-
-    # Count total instruments per date
-    total_counts = df.groupby('Date')['Instrument'].count()
-
-    # Calculate percentage of instruments with 0 returns per date
-    zero_percentage = (zero_counts / total_counts) * 100
-
-    # Filter dates where percentage is 40% or more
-    dates_to_drop = zero_percentage[zero_percentage >= 40].index
-
-    # Drop these dates from the original DataFrame
-    df_filtered = df[~df['Date'].isin(dates_to_drop)]
-
-    return df_filtered
 
 def lag_portfolio_weights(df):
     # Lag the portfolio weights by one day for each instrument
@@ -80,21 +59,18 @@ def calculate_daily_sector_weights(df):
 
     return sector_weights
 
-def get_portfolio_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_df, multi_industry_xlsx):
+def get_portfolio_data(performance_data, benchmark_df):
     # Call all the three functions above to get the portfolio data
-    portfolio_weights = prepare_portfolio_weights(portfolio_weight_xlsx)
-    portfolio_returns = prepare_portfolio_returns(portfolio_return_xlsx)
-    portfolio_returns.to_csv('temporary_sanity_check_port_returns.csv')
-    portfolio_weights.to_csv('temporary_sanity_check_port_weights.csv')
+    portfolio_weights = prepare_portfolio_weights(performance_data)
+    portfolio_returns = prepare_portfolio_returns(performance_data)
 
     portfolio_df = combine_portfolio_data(portfolio_weights, portfolio_returns)
 
     # Handle multi-industry weights
-    portfolio_df = handle_multi_industry_assets(portfolio_df, benchmark_df, multi_industry_xlsx)
+    portfolio_df = handle_multi_industry_assets(portfolio_df, performance_data, benchmark_df)
 
     portfolio_df = lag_portfolio_weights(portfolio_df)
     portfolio_df['Weighted Returns'] = calculate_weighted_returns(portfolio_df)
-
 
     # Get sector level daily weights
     sector_weights = calculate_daily_sector_weights(portfolio_df)
@@ -103,7 +79,6 @@ def get_portfolio_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_d
     # Drop rows where Weight_Sector is 0
     portfolio_df = portfolio_df[portfolio_df['Weight_Sector'] != 0]
     portfolio_df['Asset Weight in Sector'] = portfolio_df['Weight'] / portfolio_df['Weight_Sector']
-
 
     # Calculate asset level sector contribution. Turns into sector return during the next step
     portfolio_df['Sector Return'] = portfolio_df['Asset Weight in Sector'] * portfolio_df['Return']
@@ -114,10 +89,9 @@ def get_portfolio_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_d
 
     return portfolio_df
 
-
-def handle_multi_industry_assets(portfolio_df, benchmark_df, multi_industry_weights_csv):
+def handle_multi_industry_assets(portfolio_df, performance_data, benchmark_df):
     # Prepare multi_ind dataframe
-    multi_ind_df = pd.read_excel(multi_industry_weights_csv)
+    multi_ind_df = pd.read_excel(performance_data, sheet_name="Multi-Industry Weights")
     multi_ind_df.rename(columns={multi_ind_df.columns[0]: "Instrument"}, inplace=True)
     multi_ind_df = multi_ind_df.melt(id_vars=['Instrument'], var_name='GICS Sector', value_name='BM Weight')
     # Create new column that connects Instrument and GICS Sector columns
@@ -143,8 +117,8 @@ def handle_multi_industry_assets(portfolio_df, benchmark_df, multi_industry_weig
 
 #! ---------------------------- Benchmark data functions ----------------------------
 
-def prepare_benchmark_weights(weight_excel):
-    benchmark_weights = pd.read_excel(weight_excel)
+def prepare_benchmark_weights(performance_data):
+    benchmark_weights = pd.read_excel(performance_data, sheet_name="Benchmark Weights")
     benchmark_weights.rename(columns={benchmark_weights.columns[0]: "Date"}, inplace=True)
     benchmark_weights = benchmark_weights.melt(id_vars=['Date'], var_name=['GICS Sector'], value_name='Weight')
 
@@ -152,8 +126,8 @@ def prepare_benchmark_weights(weight_excel):
 
     return benchmark_weights    
 
-def prepare_benchmark_returns(return_excel): 
-    benchmark_returns = pd.read_excel(return_excel)
+def prepare_benchmark_returns(performance_data): 
+    benchmark_returns = pd.read_excel(performance_data, sheet_name="Benchmark Returns")
     benchmark_returns.rename(columns={benchmark_returns.columns[0]: "Date"}, inplace=True)
 
     benchmark_returns = benchmark_returns.melt(id_vars=['Date'], var_name=['GICS Sector'],value_name='Return')
@@ -171,11 +145,9 @@ def combine_benchmark_data(benchmark_weights, benchmark_returns):
 
     return benchmark_df
 
-def get_benchmark_data(benchmark_weight_xlsx, benchmark_return_xlsx):
-    benchmark_weights = prepare_benchmark_weights(benchmark_weight_xlsx)
-    benchmark_returns = prepare_benchmark_returns(benchmark_return_xlsx)
-    benchmark_returns.to_csv('temporary_sanity_check_bm_returns.csv')
-    benchmark_weights.to_csv('temporary_sanity_check_bm_weights.csv')
+def get_benchmark_data(performance_data):
+    benchmark_weights = prepare_benchmark_weights(performance_data)
+    benchmark_returns = prepare_benchmark_returns(performance_data)
     benchmark_df = combine_benchmark_data(benchmark_weights, benchmark_returns)
     benchmark_df = lag_benchmark_weights(benchmark_df)
     benchmark_df['Weighted Returns'] = calculate_weighted_returns(benchmark_df)
@@ -198,14 +170,9 @@ def combine_portfolio_and_benchmark_data(portfolio_df, benchmark_df):
     return combined_df
 
 def clean_combined_data(df):
-    combined_df = df # redistribute_portfolio_returns(df)
-
-    # Drop dates with 0 returns in benchmark
-    # merged_df = combined_df[~combined_df['Date'].isin(utils.get_zero_return_dates(combined_df))]
-    merged_df = combined_df
 
     # Calculate weighted returns
-    merged_df = (merged_df.merge(calculate_daily_total_returns(merged_df), on='Date', how='left', suffixes=('', '_daily_total'))
+    merged_df = (df.merge(calculate_daily_total_returns(df), on='Date', how='left', suffixes=('', '_daily_total'))
           .rename(columns={'Portfolio Weighted Returns_daily_total': 'Portfolio Daily Total Return',
                            'Benchmark Weighted Returns_daily_total': 'Benchmark Daily Total Return'}))
 
@@ -238,11 +205,11 @@ def calculate_daily_excess_return(df):
 
 #! ---------------------------- Function that gets called from app.py, returns basic form of data ----------------------------
 
-def get_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_weight_xlsx, benchmark_return_xlsx, multi_industry_xlsx):
-    # Returns two dataframes, one for sector level data and one for daily level data
-
-    benchmark_df = get_benchmark_data(benchmark_weight_xlsx, benchmark_return_xlsx)
-    portfolio_df = get_portfolio_data(portfolio_weight_xlsx, portfolio_return_xlsx, benchmark_df, multi_industry_xlsx)
+def get_data(performance_data):
+    # Read all the different sheets in xlsx and create unique dataframes from each
+    
+    benchmark_df = get_benchmark_data(performance_data)
+    portfolio_df = get_portfolio_data(performance_data, benchmark_df)
 
     combined_df = combine_portfolio_and_benchmark_data(portfolio_df, benchmark_df)
     combined_df = clean_combined_data(combined_df)

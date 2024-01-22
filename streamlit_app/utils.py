@@ -9,12 +9,6 @@ def return_datetime_column(df_series):
     df_series = pd.to_datetime(df_series, format='%d.%m.%Y')
     return df_series
 
-def get_zero_return_dates(df):
-    # Calculate daily benchmark total and identify zero return dates
-    daily_benchmark_total = df.groupby('Date')['Benchmark Return'].sum()
-    zero_return_dates = daily_benchmark_total[daily_benchmark_total == 0].index
-    return zero_return_dates
-
 def calculate_compounded_change(series_from_df):
     return np.exp(np.log(1 + series_from_df).cumsum()) - 1
 
@@ -24,5 +18,5 @@ def to_excel_download(dataframe, sheet_name='Sheet1'):
     """
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        dataframe.to_excel(writer, sheet_name=sheet_name, index=False)
+        dataframe.to_excel(writer, sheet_name=sheet_name, index=True)
     return output.getvalue()
