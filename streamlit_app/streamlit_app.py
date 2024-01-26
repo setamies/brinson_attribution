@@ -25,24 +25,14 @@ def main():
         st.header('Upload Data Files')
         performance_data = st.file_uploader("Performance Data", type=['xlsx'], key="performance_data")
         
-        start = datetime.date(2022, 12, 31)
-        end = datetime.date(2023, 12, 31)
-        max_date = datetime.date((datetime.datetime.now().year + 1), 1, 1)
-        dates = st.date_input(
-            "Select the date range",
-            (start, end),
-            # Max value is today
-            max_value=max_date
-        )
-
     # Check if the file has been uploaded and display the results
-    if performance_data is not None and len(dates) == 2:
+    if performance_data is not None:
 
         with st.spinner("Loading..."):
             time.sleep(3)
 
         # Fetch sector and daily level data
-        combined_df, daily_level_data = data.get_data(performance_data, dates)
+        combined_df, daily_level_data = data.get_data(performance_data)
 
         st.title("Analysis Results")
 
@@ -53,7 +43,7 @@ def main():
             st.plotly_chart(viz.plot_daily_compounded_returns(viz_data.daily_compounded_returns(daily_level_data)), use_container_width=True)
 
         with col2:
-            st.subheader("Sector Effects - Allocation, Selection, and Interaction")
+            st.subheader("Sector Effects - Allocation and Selection")
             st.plotly_chart(viz.plot_allocation_effects_per_sector(viz_data.get_compounded_sector_effects(combined_df)), use_container_width=True)
 
         st.subheader("Portfolio vs Benchmark Average Sector Weights")
@@ -88,7 +78,7 @@ def main():
                 mime='application/vnd.ms-excel',
                 use_container_width=True
             )
-            
+
 
     else:
         st.info("Please upload required files and select the dates to proceed with the analysis.")

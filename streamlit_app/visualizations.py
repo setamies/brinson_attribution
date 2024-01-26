@@ -8,7 +8,7 @@ color_palette = {
     'Benchmark': 'rgba(110,128,144,255)',    
     'Allocation': 'rgba(114,194,136,255)',  
     'Selection': 'rgba(61,121,144,255)',  
-    'Interaction': 'rgba(38,88,76,255)', 
+#    'Interaction': 'rgba(38,88,76,255)', 
     'Excess Returns': 'rgba(184,214,225,255)' 
 }
 
@@ -108,14 +108,6 @@ def plot_allocation_effects_per_sector(df):
         marker_color=color_palette['Selection']
     ))
 
-    fig.add_trace(go.Bar(
-        y=df['GICS Sector'],
-        x=df['Interaction Effect'],
-        name='Interaction',
-        orientation='h',
-        marker_color=color_palette['Interaction']
-    ))
-
     fig.update_layout(
         barmode='group',
         xaxis_title='Effect Value',
@@ -143,7 +135,6 @@ def plot_attribution_effects(df):
     effect_names_map = {
         'Allocation Effect': 'Allocation',
         'Selection Effect': 'Selection',
-        'Interaction Effect': 'Interaction',
         'Excess Returns': 'Excess Returns'  # Keeping this the same
     }
 

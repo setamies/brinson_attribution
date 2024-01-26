@@ -85,20 +85,18 @@ def handle_multi_industry_assets(portfolio_df, performance_data, benchmark_df):
 
     return new_portfolio_df
 
-def get_portfolio_data(performance_data, benchmark_df, dates):
+def get_portfolio_data(performance_data, benchmark_df):
     # Call all the three functions above to get the portfolio data
     portfolio_weights = prepare_portfolio_weights(performance_data)
     portfolio_returns = prepare_portfolio_returns(performance_data)
     portfolio_df = combine_portfolio_data(portfolio_weights, portfolio_returns)    
-
-    portfolio_df = utils.filter_data_by_dates(portfolio_df, dates)
 
     # Handle multi-industry weights
     portfolio_df = handle_multi_industry_assets(portfolio_df, performance_data, benchmark_df)
 
     portfolio_df = lag_portfolio_weights(portfolio_df)    
     portfolio_df['Weighted Returns'] = calculate_weighted_returns(portfolio_df)
-
+    
     # Get sector level daily weights
     sector_weights = calculate_daily_sector_weights(portfolio_df)
     portfolio_df = portfolio_df.merge(sector_weights, on=['Date', 'GICS Sector'], how='left', suffixes=('', '_Sector'))
@@ -146,14 +144,12 @@ def combine_benchmark_data(benchmark_weights, benchmark_returns):
 
     return benchmark_df
 
-def get_benchmark_data(performance_data, dates):
+def get_benchmark_data(performance_data):
     benchmark_weights = prepare_benchmark_weights(performance_data)
     benchmark_returns = prepare_benchmark_returns(performance_data)
     
     benchmark_df = combine_benchmark_data(benchmark_weights, benchmark_returns)
-    
-    benchmark_df = utils.filter_data_by_dates(benchmark_df, dates)
-    
+        
     benchmark_df = lag_benchmark_weights(benchmark_df)
     benchmark_df['Weighted Returns'] = calculate_weighted_returns(benchmark_df)
     benchmark_df['Date'] = utils.return_datetime_column(benchmark_df['Date'])
@@ -188,11 +184,11 @@ def clean_combined_data(df):
     return merged_df
 
 def get_attribution_effects(df):
-    #! This could be made better, so that it doesn't directly manipulate original df
+    #! Include interaction effect if you opt to use it. Also include it in sum of effects
     df['Allocation Effect'] = attr.calculate_allocation_effect(df)
     df['Selection Effect'] = attr.calculate_selection_effect(df)
-    df['Interaction Effect'] = attr.calculate_interaction_effect(df)
-    df['Sum of Effects'] = attr.sum_of_effects(df['Allocation Effect'], df['Selection Effect'], df['Interaction Effect'])
+    # df['Interaction Effect'] = attr.calculate_interaction_effect(df)
+    df['Sum of Effects'] = attr.sum_of_effects(df['Allocation Effect'], df['Selection Effect'])
 
     return df
 
@@ -210,11 +206,11 @@ def calculate_daily_excess_return(df):
 
 #! ---------------------------- Function that gets called from app.py, returns basic form of data ----------------------------
 
-def get_data(performance_data, dates):
+def get_data(performance_data):
     # Read all the different sheets in xlsx and create unique dataframes from each
     
-    benchmark_df = get_benchmark_data(performance_data, dates)
-    portfolio_df = get_portfolio_data(performance_data, benchmark_df, dates)
+    benchmark_df = get_benchmark_data(performance_data)
+    portfolio_df = get_portfolio_data(performance_data, benchmark_df)
 
     combined_df = combine_portfolio_and_benchmark_data(portfolio_df, benchmark_df)
     combined_df = clean_combined_data(combined_df)
@@ -229,7 +225,6 @@ def get_data(performance_data, dates):
                                     'Benchmark Weighted Returns', 
                                     'Allocation Effect', 
                                     'Selection Effect', 
-                                    'Interaction Effect', 
                                     'Sum of Effects']].groupby('Date').sum()
 
     daily_level_data['Excess Return'] = daily_level_data['Portfolio Weighted Returns'] - daily_level_data['Benchmark Weighted Returns']

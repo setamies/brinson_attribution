@@ -38,14 +38,14 @@ def get_compounded_sector_effects(df):
     # Manually calculate the last compounded effect for each sector
     allocation_last = get_last_compounded_effects(df, 'Allocation Effect')
     selection_last = get_last_compounded_effects(df, 'Selection Effect')
-    interaction_last = get_last_compounded_effects(df, 'Interaction Effect')
+    # interaction_last = get_last_compounded_effects(df, 'Interaction Effect')
 
     # Combine the results into a single DataFrame
     results_df = pd.DataFrame({
         'GICS Sector': allocation_last.keys(),
         'Allocation Effect': allocation_last.values(),
         'Selection Effect': selection_last.values(),
-        'Interaction Effect': interaction_last.values()
+        # 'Interaction Effect': interaction_last.values()
     })
 
     return results_df
@@ -65,12 +65,12 @@ def compounded_allocation_effects(df):
 
     df['Allocation Effect'] = df['Allocation Effect'] * scaling_coefficient
     df['Selection Effect'] = df['Selection Effect'] * scaling_coefficient
-    df['Interaction Effect'] = df['Interaction Effect'] * scaling_coefficient
+    # df['Interaction Effect'] = df['Interaction Effect'] * scaling_coefficient
 
     # Each value is now cumulative, so we need to calculate the cumulative values
     allocation_effects = df['Allocation Effect'].cumsum()
     selection_effects = df['Selection Effect'].cumsum()
-    interaction_effects = df['Interaction Effect'].cumsum()
+    # interaction_effects = df['Interaction Effect'].cumsum()
 
     excess_returns = comp_change_df['Portfolio Weighted Returns'] - comp_change_df['Benchmark Weighted Returns']
 
@@ -78,7 +78,7 @@ def compounded_allocation_effects(df):
     results_df = pd.DataFrame({
         'Allocation Effect': allocation_effects,
         'Selection Effect': selection_effects,
-        'Interaction Effect': interaction_effects,
+    #    'Interaction Effect': interaction_effects,
         'Excess Returns': excess_returns
     }, index=df.index)
 
